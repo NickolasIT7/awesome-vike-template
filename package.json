@@ -24,8 +24,6 @@
     "@vue/compiler-sfc": "^3.3.10",
     "@vue/server-renderer": "^3.3.10",
     "@web-types/vuetify": "^2.0.15-1",
-    "i": "^0.3.7",
-    "npm": "^10.5.0",
     "pinia": "^2.1.7",
     "sass": "^1.71.1",
     "swiper": "^11.0.7",
