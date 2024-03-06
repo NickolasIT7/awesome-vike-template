@@ -13,9 +13,16 @@
 
 import express from 'express'
 import compression from 'compression'
+import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import { renderPage } from 'vike/server'
 import { root } from './root.js'
+import httpDevServer from "vavite/http-dev-server"
+import { Readable } from 'stream'
+
+dotenv.config()
 const isProduction = process.env.NODE_ENV === 'production'
+let port = 3000
+if (process.env.PORT) port = +process.env.PORT
 
 startServer()
 
@@ -24,25 +31,11 @@ async function startServer() {
 
   app.use(compression())
 
-  // Vite integration
-  if (isProduction) {
-    // In production, we need to serve our static assets ourselves.
-    // (In dev, Vite's middleware serves our static assets.)
+  // Vavite integration
+  if (!httpDevServer) {
     const sirv = (await import('sirv')).default
     app.use(sirv(`${root}/dist/client`))
-  } else {
-    // We instantiate Vite's development server and integrate its middleware to our server.
-    // ⚠️ We instantiate it only in development. (It isn't needed in production and it
-    // would unnecessarily bloat our production server.)
-    const vite = await import('vite')
-    const viteDevMiddleware = (
-      await vite.createServer({
-        root,
-        server: { middlewareMode: true }
-      })
-    ).middlewares
-    app.use(viteDevMiddleware)
-  }
+  } 
 
   // ...
   // Other middlewares (e.g. some RPC middleware such as Telefunc)
@@ -62,16 +55,19 @@ async function startServer() {
     if (!httpResponse) {
       return next()
     } else {
-      const { body, statusCode, headers, earlyHints } = httpResponse
+      const { statusCode, headers, earlyHints } = httpResponse
       if (res.writeEarlyHints) res.writeEarlyHints({ link: earlyHints.map((e) => e.earlyHintLink) })
       headers.forEach(([name, value]) => res.setHeader(name, value))
       res.status(statusCode)
-      // For HTTP streams use httpResponse.pipe() instead, see https://vike.dev/streaming
-      res.send(body)
+      httpResponse.pipe(res)
     }
   })
 
-  const port = process.env.PORT || 3000
-  app.listen(port)
-  console.log(`Server running at http://localhost:${port}`)
+  if (httpDevServer) {
+    httpDevServer!.on("request", app);
+  } else {
+    // const port = process.env.PORT || 3000;
+    app.listen(port);
+    console.log(`Server running at http://localhost:${port}`);
+  }
 }

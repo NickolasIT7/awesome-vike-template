@@ -6,6 +6,10 @@ import type { Component } from './types'
 import { setPageContext } from './usePageContext'
 import type { PageContext } from 'vike/types'
 
+import vuetify from '#root/plugins/vuetify'
+import { createPinia } from 'pinia'
+import { LazyHydrationWrapper } from 'vue3-lazy-hydration'
+
 function createApp(pageContext: PageContext) {
   const { Page } = pageContext
 
@@ -31,7 +35,9 @@ function createApp(pageContext: PageContext) {
   })
 
   const app = createSSRApp(PageWithShell)
-
+  const store = createPinia()
+  app.component('LazyHydrate', LazyHydrationWrapper)
+  app.use(store).use(vuetify)
   // We use `app.changePage()` to do Client Routing, see `+onRenderClient.ts`
   objectAssign(app, {
     changePage: (pageContext: PageContext) => {
@@ -47,7 +53,7 @@ function createApp(pageContext: PageContext) {
   // Make pageContext available from any Vue component
   setPageContext(app, pageContextReactive)
 
-  return app
+  return { app, store }
 }
 
 // Same as `Object.assign()` but with type inference

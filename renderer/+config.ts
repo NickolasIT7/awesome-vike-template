@@ -13,7 +13,7 @@ export default {
     // Define new setting 'description'
     description: {
       env: { server: true }
-    }
+    },
   },
   hydrationCanBeAborted: true
 } satisfies Config

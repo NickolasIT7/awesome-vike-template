@@ -1,5 +1,6 @@
 export type { Component }
 
+import internal from "stream"
 import type { ComponentPublicInstance } from 'vue'
 
 type Component = ComponentPublicInstance // https://stackoverflow.com/questions/63985658/how-to-type-vue-instance-out-of-definecomponent-in-vue-3/63986086#63986086
@@ -9,7 +10,9 @@ type Page = Component
 declare global {
   namespace Vike {
     interface PageContext {
-      Page: Page
+      Page: Page,
+      stream: internal.Readable,
+      initialStoreState: any,
       data?: {
         /** Value for <title> defined dynmically by by /pages/some-page/+data.js */
         title?: string
